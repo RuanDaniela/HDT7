@@ -9,39 +9,34 @@ import com.opencsv.exceptions.CsvValidationException;
 public class CSVLoader {
     public static BinarySearchTree<Product> loadProducts(String filePath) {
         BinarySearchTree<Product> bst = new BinarySearchTree<>();
-        
+
         try (CSVReader reader = new CSVReader(new FileReader(filePath))) {
             String[] nextLine;
 
-            // Verifica si el archivo tiene al menos una línea (posible encabezado)
-            if ((nextLine = reader.readNext()) != null) {
-                
-                while ((nextLine = reader.readNext()) != null && nextLine.length > 0) {
-                    if (nextLine.length < 5) {
-                        System.err.println("Error: Fila con datos incompletos. Contenido: " + String.join(", ", nextLine));
-                        continue;
-                    }
-                    
-                    try {
-                        Product product = new Product(
-                            nextLine[0], 
-                            Double.parseDouble(nextLine[1]),
-                            Double.parseDouble(nextLine[2]), 
-                            nextLine[3], 
-                            nextLine[4]
-                        );
-                        bst.insert(product);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Error de formato en números: " + String.join(", ", nextLine));
-                    }
+            reader.readNext(); // Ignorar la primera línea (encabezado)
+
+            while ((nextLine = reader.readNext()) != null) {
+                if (nextLine.length < 19 || nextLine[7].isEmpty() || nextLine[10].isEmpty()) {
+                    continue; // Ignorar filas sin SKU o sin precios
                 }
-            } else {
-                System.err.println("Error: El archivo CSV está vacío o no tiene encabezado.");
+
+                try {
+                    String sku = nextLine[7].trim(); // Columna SKU, eliminar espacios
+                    double priceRetail = Double.parseDouble(nextLine[10]);
+                    double priceCurrent = Double.parseDouble(nextLine[11]);
+                    String productName = nextLine[18]; // Nombre del producto
+                    String category = nextLine[0]; // Categoría
+
+                    Product product = new Product(sku, priceRetail, priceCurrent, productName, category);
+                    bst.insert(product);
+                } catch (NumberFormatException e) {
+                    // Ignorar errores de conversión sin imprimir nada
+                }
             }
-        } catch (IOException | CsvValidationException e) {  // Captura CsvValidationException aquí
+        } catch (IOException | CsvValidationException e) {
             System.err.println("Error al leer el archivo CSV: " + e.getMessage());
         }
-        
+
         return bst;
     }
 }

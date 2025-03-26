@@ -1,10 +1,13 @@
 package com.example;
-// Implementación del Binary Search Tree (BST)
+
 class BinarySearchTree<E extends Comparable<E>> {
     private class Node {
         E data;
         Node left, right;
-        Node(E data) { this.data = data; }
+
+        Node(E data) {
+            this.data = data;
+        }
     }
 
     private Node root;
@@ -32,5 +35,17 @@ class BinarySearchTree<E extends Comparable<E>> {
 
     public boolean isEmpty() {
         return root == null;
+    }
+
+    public void inOrderTraversal() {
+        inOrderTraversalRec(root);
+    }
+
+    private void inOrderTraversalRec(Node root) {
+        if (root != null) {
+            inOrderTraversalRec(root.left);
+            System.out.println(root.data);
+            inOrderTraversalRec(root.right);
+        }
     }
 }

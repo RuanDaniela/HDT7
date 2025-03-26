@@ -28,6 +28,7 @@ public class Product implements Comparable<Product> {
 
     @Override
     public String toString() {
-        return "SKU: " + sku + ", Nombre: " + productName + ", Precio Actual: " + priceCurrent + ", Precio Retail: " + priceRetail + ", Categoría: " + category;
+        return "SKU: " + sku + ", Nombre: " + productName + ", Precio Actual: " + priceCurrent + 
+               ", Precio Retail: " + priceRetail + ", Categoría: " + category;
     }
 }
