@@ -2,39 +2,65 @@ package com.example;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class CSVLoader {
     public static BinarySearchTree<Product> loadProducts(String filePath) {
         BinarySearchTree<Product> bst = new BinarySearchTree<>();
 
-        try (CSVReader reader = new CSVReader(new FileReader(filePath))) {
-            String[] nextLine;
+        try {
+            // Crear un parser con el delimitador ';'
+            CSVParser parser = new CSVParserBuilder().withSeparator(';').build();
+            // Crear el CSVReader con el parser
+            CSVReader reader = new CSVReaderBuilder(new FileReader(filePath)).withCSVParser(parser).build();
 
-            reader.readNext(); // Ignorar la primera línea (encabezado)
+            String[] nextLine;
+            reader.readNext(); // Ignorar encabezado
 
             while ((nextLine = reader.readNext()) != null) {
-                if (nextLine.length < 19 || nextLine[7].isEmpty() || nextLine[10].isEmpty()) {
-                    continue; // Ignorar filas sin SKU o sin precios
+                // 🔍 Imprimir la línea para ver su formato
+                System.out.println("📄 Línea del CSV: " + Arrays.toString(nextLine));
+
+                // Validar que la línea tenga los datos necesarios (al menos 5 columnas)
+                if (nextLine.length < 5) {
+                    System.out.println("⚠ Fila ignorada por tener menos de 5 columnas.");
+                    continue;
                 }
 
                 try {
-                    String sku = nextLine[7].trim(); // Columna SKU, eliminar espacios
-                    double priceRetail = Double.parseDouble(nextLine[10]);
-                    double priceCurrent = Double.parseDouble(nextLine[11]);
-                    String productName = nextLine[18]; // Nombre del producto
-                    String category = nextLine[0]; // Categoría
+                    String category = nextLine[0].trim();
+                    String sku = nextLine[1].trim();
+                    String priceRetailStr = nextLine[2].trim();
+                    String priceCurrentStr = nextLine[3].trim();
+                    String productName = nextLine[4].trim();
+
+                    // 🛠 Manejar precios vacíos o inválidos
+                    double priceRetail = priceRetailStr.isEmpty() ? 0.0 : Double.parseDouble(priceRetailStr);
+                    double priceCurrent = priceCurrentStr.isEmpty() ? 0.0 : Double.parseDouble(priceCurrentStr);
+
+                    // Verificar que el SKU no esté vacío
+                    if (sku.isEmpty()) {
+                        System.out.println("⚠ Fila ignorada por SKU vacío.");
+                        continue;
+                    }
 
                     Product product = new Product(sku, priceRetail, priceCurrent, productName, category);
                     bst.insert(product);
+
+                    // ✅ Confirmación de inserción
+                    System.out.println("✅ Insertado en BST: " + product);
                 } catch (NumberFormatException e) {
-                    // Ignorar errores de conversión sin imprimir nada
+                    System.err.println("🚨 Error al convertir precios en línea: " + Arrays.toString(nextLine));
                 }
             }
         } catch (IOException | CsvValidationException e) {
-            System.err.println("Error al leer el archivo CSV: " + e.getMessage());
+            System.err.println("❌ Error al leer el archivo CSV: " + e.getMessage());
         }
 
         return bst;
